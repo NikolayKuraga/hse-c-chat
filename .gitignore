@@ -1,3 +1,7 @@
+# Emacs temporary files
 main.c~
-main.exe
 .gitignore~
+
+# executable files
+main.exe
+a.out

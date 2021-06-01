@@ -1,41 +1,26 @@
 #ifndef SERVER_H
 #define SERVER_H
 
-// standart thing
-#define _CRT_SECURE_NO_WARNINGS
-#include <stdio.h>
-#include <string.h>
-
-// net, web and other communicative stuff
-#include <windows.h>
-#include <winsock.h>
-#pragma comment(lib, "ws2_32.lib")
-
-// multithreading from UNIX
-#define HAVE_STRUCT_TIMESPEC
+#include "shared.h"
 #include <pthread.h>
 
-// some macros
 #define MAX_USER_INFO 20
 #define MAX_USERS     10
 #define STR_LEN       1024
 
-// user-struct
-typedef struct user {
+typedef struct {
     char login[MAX_USER_INFO];
     char password[MAX_USER_INFO];
-} USER;
+} User;
 
-// array of users
-typedef struct users {
+typedef struct {
     int n;
-    USER usersInfo[MAX_USERS];
-} USERS;
+    User usersInfo[MAX_USERS];
+} Users;
 
-// some functions
-void mutex_lock();
-void mutex_unlock();
-void* ClientStart(void* param);
+void server_mutex_lock();
+void server_mutex_unlock();
+void *ClientStart(void *fd);
 int CreateServer();
 
 #endif//SERVER_H
