@@ -9,12 +9,13 @@
 #define STR_LEN       1024
 
 typedef struct {
+    int id;
     char login[MAX_USER_INFO];
     char password[MAX_USER_INFO];
 } User;
 
 typedef struct {
-    int n;
+    int num;
     User usersInfo[MAX_USERS];
 } Users;
 

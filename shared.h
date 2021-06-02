@@ -1,14 +1,20 @@
 #ifndef SHARED_H
 #define SHARED_H
 
+// C standart libraries
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
+// some POSIX-thing...
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <unistd.h>
+
+#define STR_LEN 1024
+#define ARR_LEN(array, element) (sizeof(array) / sizeof(element)) // calculate length of array
 
 int Socket(int domain, int type, int protocol);
 
