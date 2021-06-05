@@ -2,26 +2,32 @@
 #define SERVER_H
 
 #include "shared.h"
+#include <stdarg.h>
 #include <pthread.h>
 
-#define MAX_USER_INFO 20
-#define MAX_USERS     10
-#define STR_LEN       1024
+#define REGISTERED_USERS_PATH    "./data/registered_users.txt"
 
-typedef struct {
-    int id;
-    char login[MAX_USER_INFO];
-    char password[MAX_USER_INFO];
-} User;
+#define MAX_USERS                5       // first user (user[0]) is not used, so MAX_USERS - 1
+#define STR_LEN                  1024
+#define MAX_ARG                  2
 
+// Some list of users, for example list of registered users
 typedef struct {
     int num;
-    User usersInfo[MAX_USERS];
-} Users;
+    struct {
+        int id;
+        char username[STR_LEN];
+        char password[STR_LEN];
+    } user[MAX_USERS];
+} UserList;
 
-void server_mutex_lock();
-void server_mutex_unlock();
-void *ClientStart(void *fd);
+// Client socket starter kit -- a pack of important things. Its pointer is gived to newThread
+typedef struct {
+    int clientSock;
+    UserList *active;
+    UserList *registered;
+} ClientKit;
+
 int CreateServer();
 
 #endif//SERVER_H

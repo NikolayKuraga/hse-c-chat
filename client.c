@@ -3,7 +3,8 @@
 void CreateClient() {
     char receiveAr[STR_LEN] = { 0 };
     char transmitAr[STR_LEN] = { 0 };
-    char userName[STR_LEN] = { 0 };
+    char username[STR_LEN] = { 0 };
+    char tmpAr[STR_LEN] = { 0 };
     int inf;
 
     int clientSock = Socket(AF_INET, SOCK_STREAM, IPPROTO_IP);
@@ -14,37 +15,50 @@ void CreateClient() {
 
     Connect(clientSock, (struct sockaddr *) &serverAddr, sizeof(serverAddr));
 
-/*    printf("Enter some name: ");
-    fgets(userName, ARR_LEN(userName, *userName), stdin);
-    userName[strlen(userName) - 1] = '\0';
-    inf = write(clientSock, userName, sizeof(userName));
+    printf("Enter username: ");
+    fgets(username, ARR_LEN(username, *username), stdin);
+    username[strlen(username) - 1] = '\0';
+    inf = write(clientSock, username, sizeof(username));
     if (inf == -1) {
-        printf("login failed\n");
+        printf("login error #1 (username-step)\n");
         close(clientSock);
         return;
     }
-*/
-
-    printf("Enter some name: ");
-    fgets(userName, ARR_LEN(userName, *userName), stdin);
-    userName[strlen(userName) - 1] = '\0';
-    inf = write(clientSock, userName, sizeof(userName));
+    printf("Enter password: ");
+    fgets(tmpAr, ARR_LEN(tmpAr, *tmpAr), stdin);
+    tmpAr[strlen(tmpAr) - 1] = '\0';
+    inf = write(clientSock, tmpAr, sizeof(tmpAr));
     if (inf == -1) {
-        printf("login error #1\n");
+        printf("login error #2 (password-step)\n");
         close(clientSock);
         return;
     }
     inf =  read(clientSock, receiveAr,  sizeof(receiveAr));
     if (inf == -1) {
-        printf("login error #2\n");
+        printf("login error #3 (reply-step)\n");
         close(clientSock);
         return;
     }
-    printf("You logged in as %s\n", receiveAr);
+
+    if      (!strcmp(receiveAr, "success 1")) {
+        printf("Welcome back, %s!\n", username);
+    }
+    else if (!strcmp(receiveAr, "wrong password")) {
+        printf("Wrong password for username %s.\n", username);
+    }
+    else if (!strcmp(receiveAr, "not available")) {
+        printf("Registration is closed\n");
+    }
+    else if (!strcmp(receiveAr, "success 2")) {
+        printf("Welcome aboard, %s!\n", username);
+    }
+    else {
+        printf("error #1002");
+    }
     
 /*
     for(;;) {
-        printf(" %s > draft: ", userName);
+        printf(" %s > draft: ", tmpAr);
         fgets(transmitAr, ARR_LEN(transmitAr, *transmitAr), stdin);
         transmitAr[strlen(transmitAr) - 1] = '\0';
         inf = write(clientSock, transmitAr, sizeof(receiveAr));
