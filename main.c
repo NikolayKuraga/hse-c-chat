@@ -1,25 +1,27 @@
 #include "server.h"
 #include "client.h"
 
-int main(int argc, char* argv[])
+int main(int argc, char *argv[])
 {
-    if (argc > 1) {
+    if (argc > 2) {
+        printf("too many arguments\n\n");
+    }
+    else if (argc == 2) {
         if (!strcmp(argv[1], "server")) {
-            printf("SERVER\n");
+            printf("\n\tStart server\n\n");
             CreateServer();
         }
         else if (!strcmp(argv[1], "client")) {
-            printf("CLIENT\n");
-            SendData2Server();
+            printf("\n\tStart client\n\n");
+            CreateClient();
         }
         else {
-            printf("WRONG ARGUMENT\n");
+            printf("wrong argument\n\n");
         }
     }
     else {
-        printf("CLIENT\n");
-        SendData2Server();
+        printf("\n\tStart client by default\n\n");
+        CreateClient();
     }
     return 0;
 }
-

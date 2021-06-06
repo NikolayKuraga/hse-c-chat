@@ -1,7 +1,12 @@
-# Emacs temporary files
+# Emacs temporary(?) files
 main.c~
+\#main.c\#
+\#server.h\#
 .gitignore~
 
 # executable files
 main.exe
 a.out
+
+# folders
+data

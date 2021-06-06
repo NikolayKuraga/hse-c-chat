@@ -2,9 +2,8 @@
 #define CLIENT_H
 
 #include "shared.h"
-#include <time.h>
 
-void SendData2Server();
+void CreateClient();
 
 #endif//CLIENT_H
 
