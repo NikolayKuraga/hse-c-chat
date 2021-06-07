@@ -9,7 +9,7 @@ int Socket(int domain, int type, int protocol) {
     return inf;
 }
 
-void Bind(int sockfd, const struct sockaddr* addr, int addrlen) {
+void Bind(int sockfd, const struct sockaddr *addr, int addrlen) {
     int inf = bind(sockfd, addr, addrlen);
     if (inf == INVALID_SOCKET) {
         perror("bind failed");
@@ -25,7 +25,7 @@ void Listen(int sockfd, int backlog) {
     }
 }
 
-int Accept(int sockfd, struct sockaddr* addr, int* addrlen) {
+int Accept(int sockfd, struct sockaddr *addr, int *addrlen) {
     int inf = accept(sockfd, addr, addrlen);
     if (inf == INVALID_SOCKET) {
         perror("accept failed");
