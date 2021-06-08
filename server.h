@@ -22,8 +22,9 @@ typedef struct {
 
 // Client socket starter kit -- a pack of important things. Its pointer is gived to newThread
 typedef struct {
-    int clientSock;
-    UserList *active;
+    int sock;
+    int id;
+    char username[STR_LEN];
     UserList *registered;
 } ClientKit;
 

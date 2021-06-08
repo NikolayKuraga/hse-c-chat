@@ -1,8 +1,12 @@
-# Emacs temporary(?) files
+# Emacs files
 main.c~
 \#main.c\#
 \#server.h\#
 .gitignore~
+Makefile~
+
+# object files
+*.o
 
 # executable files
 main.exe

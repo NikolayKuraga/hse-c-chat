@@ -6,7 +6,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-// some POSIX-thing...
+// some POSIX libraries
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
@@ -14,6 +14,7 @@
 #include <unistd.h>
 
 #define STR_LEN 1024
+#define MAX_CMD_LEN 6
 #define ARR_LEN(array, element) (sizeof(array) / sizeof(element)) // calculate length of array
 
 int Socket(int domain, int type, int protocol);
