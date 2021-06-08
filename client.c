@@ -13,7 +13,7 @@ void CreateClient() {
     serverAddr.sin_port = htons(5510);
     serverAddr.sin_addr.s_addr = inet_addr("127.0.0.1");
 
-    Connect(clientSock, (struct sockaddr *) &serverAddr, sizeof(serverAddr));
+    Connect(clientSock, (struct sockaddr*)&serverAddr, sizeof(serverAddr));
 
     printf("Enter username: ");
     fgets(username, ARR_LEN(username, *username), stdin);
@@ -57,10 +57,12 @@ void CreateClient() {
         printf("Welcome aboard, %s!\n", username);
     }
     else {
-        printf("error #1002");
+        printf("error #1002\n");
+        closesocket(clientSock);
+        return;
     }
 
-    for(;;) {
+    for (;;) {
         printf(" %s > draft: ", username);
         fgets(transmitAr, ARR_LEN(transmitAr, *transmitAr), stdin);
         transmitAr[strlen(transmitAr) - 1] = '\0';
@@ -70,7 +72,7 @@ void CreateClient() {
             closesocket(clientSock);
             return;
         }
-        inf =  recv(clientSock, receiveAr,  sizeof(receiveAr), 0);
+        inf = recv(clientSock, receiveAr, sizeof(receiveAr), 0);
         if (inf == SOCKET_ERROR) {
             printf("error #2\n");
             closesocket(clientSock);

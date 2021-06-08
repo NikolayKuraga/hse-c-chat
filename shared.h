@@ -14,11 +14,10 @@
 
 // multithreading from UNIX
 #define HAVE_STRUCT_TIMESPEC
-#include <stdarg.h>
-#include <pthread.h>
 
 #define STR_LEN 1024
 #define ARR_LEN(array, element) (sizeof(array) / sizeof(element)) // calculate length of array
+#define MESSAGE_HISTORY_PATH     "./data/message_history.txt" 
 
 int Socket(int domain, int type, int protocol);
 
