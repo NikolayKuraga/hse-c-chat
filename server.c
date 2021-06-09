@@ -143,10 +143,11 @@ void * ClientFun(void *fd) {
     ClientKit *p_clientKit = (ClientKit *) fd;
     char receiveAr[STR_LEN] = { 0 };
     char transmitAr[STR_LEN] = { 0 };
+    char username[STR_LEN] = { 0 };
     char password[STR_LEN] = { 0 };
     int inf, out;
 
-    char *p_tmpAr[2] = { p_clientKit->username, password };
+    char *p_tmpAr[2] = { username, password };
     char tmpAr[2][10] = { "username\0", "password\0"};
     for (int i = 0; i < 2; ++i) {
         inf = recv(p_clientKit->sock, p_tmpAr[i], sizeof(char) * STR_LEN, 0);
@@ -159,7 +160,8 @@ void * ClientFun(void *fd) {
             return (void *) 0;
         }
     }
-    PrintUserList(p_clientKit->registered);
+    strcpy(p_clientKit->username, username);
+
     inf = CheckForUser(p_clientKit->username, password, p_clientKit->registered);
     out = 1;
     switch(inf) {
@@ -243,7 +245,6 @@ int CreateServer() {
                 registered.user[i].id = id;
                 strcpy(registered.user[i].username, username);
                 strcpy(registered.user[i].password, password);
-                printf("i) %d %s %s\n", i, username, password);
             }
         }
         fclose(rf);

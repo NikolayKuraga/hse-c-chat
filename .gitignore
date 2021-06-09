@@ -11,6 +11,7 @@ Makefile~
 # executable files
 main.exe
 a.out
+a.exe
 
 # folders
 data

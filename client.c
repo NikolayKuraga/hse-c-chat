@@ -25,7 +25,7 @@ void CreateClient() {
     serverAddr.sin_addr.s_addr = inet_addr("127.0.0.1");
 
     Connect(clientSock, (struct sockaddr *) &serverAddr, sizeof(serverAddr));
-    printf("\rTo clise client enter single word \"exit\"\n");
+    printf("\rTo close client enter single word \"exit\"\n");
 
     char *p_tmpAr[2] = { username, password };
     char tmpAr[2][10] = { "username\0", "password\0" };
