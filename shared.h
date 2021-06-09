@@ -8,16 +8,13 @@
 #include <string.h>
 
 // net, web and other communicative stuff
+#include <ws2tcpip.h> // for structure socklen_t
 #include <windows.h>
 #include <winsock.h>
 #pragma comment(lib, "ws2_32.lib")
 
-// multithreading from UNIX
-#define HAVE_STRUCT_TIMESPEC
-#include <stdarg.h>
-#include <pthread.h>
-
 #define STR_LEN 1024
+#define MAX_CMD_LEN 6
 #define ARR_LEN(array, element) (sizeof(array) / sizeof(element)) // calculate length of array
 
 int Socket(int domain, int type, int protocol);
