@@ -1,3 +1,16 @@
+# Emacs files
 main.c~
-main.exe
+\#main.c\#
+\#server.h\#
 .gitignore~
+Makefile~
+
+# object files
+*.o
+
+# executable files
+main.exe
+a.out
+
+# folders
+data

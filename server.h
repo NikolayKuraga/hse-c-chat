@@ -2,11 +2,18 @@
 #define SERVER_H
 
 #include "shared.h"
-#define REGISTERED_USERS_PATH    "./data/registered_users.txt"
+#include <stdarg.h>
 
-#define MAX_USERS                5       // first user (user[0]) is not used, so MAX_USERS - 1
+// POSIX Threads (multithreading)
+#define HAVE_STRUCT_TIMESPEC
+#include <pthread.h>
+
+#define REGISTERED_USERS_PATH    "./data/registered_users.txt"
+#define SERVER_LOGS              "./data/logs.txt"
+#define MESSAGE_HISTORY_PATH     "./data/message_history.txt"
+
+#define MAX_USERS                5       // first user (user[0]) is empty (some kind of pattern)
 #define STR_LEN                  1024
-#define MAX_ARG                  2
 
 // Some list of users, for example list of registered users
 typedef struct {
@@ -20,9 +27,10 @@ typedef struct {
 
 // Client socket starter kit -- a pack of important things. Its pointer is gived to newThread
 typedef struct {
-    int clientSock;
-    UserList* active;
-    UserList* registered;
+    int sock;
+    int id;
+    char username[STR_LEN];
+    UserList *registered;
 } ClientKit;
 
 int CreateServer();
