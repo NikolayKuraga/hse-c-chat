@@ -30,7 +30,7 @@ typedef struct {
     int sock;
     int id;
     char username[STR_LEN];
-    UserList *registered;
+    UserList* registered;
 } ClientKit;
 
 int CreateServer();

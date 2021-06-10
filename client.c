@@ -1,7 +1,7 @@
 #include "client.h"
 
 // Check for exit command
-int Send(SOCKET sockfd, const char *buf, size_t len, int flags) {
+int Send(SOCKET sockfd, const char* buf, size_t len, int flags) {
     if (strlen(buf) <= MAX_CMD_LEN && (!strcmp(buf, "exit") || !strcmp(buf, "exit\n"))) {
         send(sockfd, "exit", sizeof("exit"), 0);
         printf("\r > exit\n");
@@ -22,12 +22,13 @@ void CreateClient() {
     struct sockaddr_in serverAddr = { 0 };
     serverAddr.sin_family = AF_INET;
     serverAddr.sin_port = htons(5510);
-    serverAddr.sin_addr.s_addr = inet_addr("127.0.0.1");
+    InetPton(AF_INET, L"127.0.0.1", &serverAddr.sin_addr.s_addr);
+    //serverAddr.sin_addr.s_addr = inet_addr("127.0.0.1");
 
-    Connect(clientSock, (struct sockaddr *) &serverAddr, sizeof(serverAddr));
+    Connect(clientSock, (struct sockaddr*)&serverAddr, sizeof(serverAddr));
     printf("\rTo close client enter single word \"exit\"\n");
 
-    char *p_tmpAr[2] = { username, password };
+    char* p_tmpAr[2] = { username, password };
     char tmpAr[2][10] = { "username\0", "password\0" };
     for (int i = 0; i < 2; ++i) {
         printf("\rEnter %s: ", tmpAr[i]);
