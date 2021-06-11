@@ -22,8 +22,7 @@ void CreateClient() {
     struct sockaddr_in serverAddr = { 0 };
     serverAddr.sin_family = AF_INET;
     serverAddr.sin_port = htons(5510);
-    InetPton(AF_INET, L"127.0.0.1", &serverAddr.sin_addr.s_addr);
-    //serverAddr.sin_addr.s_addr = inet_addr("127.0.0.1");
+    serverAddr.sin_addr.s_addr = inet_addr("127.0.0.1");
 
     Connect(clientSock, (struct sockaddr*)&serverAddr, sizeof(serverAddr));
     printf("\rTo close client enter single word \"exit\"\n");

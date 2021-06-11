@@ -90,6 +90,7 @@ void ServerPrint(int args, ...) {
             if (!strcmp(cmd2, "registered")) {
                 scanf("%s", cmd3);
                 if (!strcmp(cmd3, "users")) {
+					printf("\r---\n > %s %s %s\n", cmd1, cmd2, cmd3);
                     for (int i = 1; p_termKit->registered->user[i].id && i < MAX_USERS; ++i) {
                         p_termKit->registered->user[i].id = 0;
                         memset(p_termKit->registered->user[i].username, '\0',
@@ -106,6 +107,7 @@ void ServerPrint(int args, ...) {
                 }
             }
             else if (!strcmp(cmd2, "messages")) {
+				printf("\r---\n > %s %s\n", cmd1, cmd2);
                 fclose(fopen(MESSAGE_HISTORY_PATH, "w"));
                 ServerPrint(1, "message history was deleted\n---\n");
             }
