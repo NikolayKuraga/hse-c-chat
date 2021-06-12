@@ -1,7 +1,7 @@
 ﻿#include "server.h"
 #include "client.h"
 
-int main(int argc, char* argv[])
+int main(int argc, char **argv)
 {
     WSADATA wsd;
     if (WSAStartup(MAKEWORD(1, 1), &wsd))

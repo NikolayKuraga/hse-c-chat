@@ -3,41 +3,41 @@
 int Socket(int domain, int type, int protocol) {
     int inf = socket(domain, type, protocol);
     if (inf == INVALID_SOCKET) {
-        perror("socket failed");
-        exit(EXIT_FAILURE);
+        printf("socket failed\n");
+        exit(0);
     }
     return inf;
 }
 
-void Bind(int sockfd, const struct sockaddr* addr, socklen_t addrlen) {
+void Bind(int sockfd, const struct sockaddr *addr, socklen_t addrlen) {
     int inf = bind(sockfd, addr, addrlen);
     if (inf == INVALID_SOCKET) {
-        perror("bind failed");
-        exit(EXIT_FAILURE);
+        printf("bind failed\n");
+        exit(0);
     }
 }
 
 void Listen(int sockfd, int backlog) {
     int inf = listen(sockfd, backlog);
     if (inf == INVALID_SOCKET) {
-        perror("listen failed");
-        exit(EXIT_FAILURE);
+        printf("listen failed\n");
+        exit(0);
     }
 }
 
-int Accept(int sockfd, struct sockaddr* addr, socklen_t* addrlen) {
+int Accept(int sockfd, struct sockaddr *addr, socklen_t *addrlen) {
     int inf = accept(sockfd, addr, addrlen);
     if (inf == INVALID_SOCKET) {
-        perror("accept failed");
-        exit(EXIT_FAILURE);
+        printf("accept failed\n");
+        exit(0);
     }
     return inf;
 }
 
-void Connect(int sockfd, const struct sockaddr* addr, socklen_t addrlen) {
+void Connect(int sockfd, const struct sockaddr *addr, socklen_t addrlen) {
     int inf = connect(sockfd, addr, addrlen);
     if (inf == INVALID_SOCKET) {
-        perror("connect failed");
-        exit(EXIT_FAILURE);
+        printf("connect failed\n");
+        exit(0);
     }
 }

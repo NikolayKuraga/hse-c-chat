@@ -16,7 +16,7 @@ void server_mutex_unlock() {
 }
 
 // Print user list you give
-void PrintUserList(UserList* p_userList) {
+void PrintUserList(UserList *p_userList) {
     server_mutex_lock();
     printf("\r\nnumber of users: %4.1d\n", p_userList->num);
     for (int i = 1; p_userList->user[i].id && i < MAX_USERS; ++i) {
@@ -33,16 +33,16 @@ void ServerPrint(int args, ...) {
     va_start(ap, args);
     server_mutex_lock();
     for (int i = 0; i < args; ++i) {
-        printf("%s", va_arg(ap, char*));
+        printf("%s", va_arg(ap, char *));
     }
     server_mutex_unlock();
     va_end(ap);
 }
 
-    // Terminal function. It expects some commands which server administrator can enter
-    // to server's terminal. Reacts to these commands. So, it is server's command line.
-    void* TermFun(void* fd) {
-    ClientKit* p_termKit = (ClientKit*)fd;
+// Terminal function. It expects some commands which server administrator can enter
+// to server's terminal. Reacts to these commands. So, it is server's command line.
+void *TermFun(void* fd) {
+    ClientKit *p_termKit = (ClientKit *) fd;
     char cmd1[STR_LEN] = { 0 };
     char cmd2[STR_LEN] = { 0 };
     char cmd3[STR_LEN] = { 0 };
@@ -51,14 +51,13 @@ void ServerPrint(int args, ...) {
         if (!strcmp(cmd1, "stop")) {
             server_mutex_lock();
             printf("\r---\n > %s\n---\n", cmd1);
-            FILE* wf = fopen(REGISTERED_USERS_PATH, "w+");
+            FILE *wf = fopen(REGISTERED_USERS_PATH, "w+");
             for (int i = 1; p_termKit->registered->user[i].id && i <= MAX_USERS; ++i) {
                 fprintf(wf, "%4.1d : %s\n       %s\n\n", p_termKit->registered->user[i].id, p_termKit->registered->user[i].username, p_termKit->registered->user[i].password);
             }
             fclose(wf);
             pthread_mutex_destroy(&mutex);
             pthread_mutex_destroy(&mutex_file);
-            closesocket(p_termKit->sock);
             exit(EXIT_SUCCESS);
         }
         else if (!strcmp(cmd1, "print")) {
@@ -108,7 +107,7 @@ void ServerPrint(int args, ...) {
             }
             else if (!strcmp(cmd2, "messages")) {
 				printf("\r---\n > %s %s\n", cmd1, cmd2);
-                fclose(fopen(MESSAGE_HISTORY_PATH, "w"));
+                fclose(fopen(CHAT_HISTORY_PATH, "w"));
                 ServerPrint(1, "message history was deleted\n---\n");
             }
             else {
@@ -140,7 +139,7 @@ int CheckForUser(char username[STR_LEN], char password[STR_LEN], UserList* userL
 
 // Add user (username, password and id which is actually number of array element) to some user
 // list. If user was added, then return 0. If user is not added (list is full), then return 1.
-int AddUserToList(char username[STR_LEN], char password[STR_LEN], UserList* userList) {
+int AddUserToList(char username[STR_LEN], char password[STR_LEN], UserList *userList) {
     server_mutex_lock();
     if (userList->num < MAX_USERS - 1) {
         ++userList->num;
@@ -155,7 +154,7 @@ int AddUserToList(char username[STR_LEN], char password[STR_LEN], UserList* user
 }
 
 // Literaly remove client using its ClientKit. Print message, close socket and free() ClientKit
-void RemClient(ClientKit* p_clientKit) {
+void RemClient(ClientKit *p_clientKit) {
     char buf[STR_LEN * 2] = { 0 };
     sprintf(buf, "\rclient (socket=%d", p_clientKit->sock);
     if (*(p_clientKit->username) != '\0' && strcmp(p_clientKit->username, "exit")) {
@@ -169,8 +168,8 @@ void RemClient(ClientKit* p_clientKit) {
 }
 
 // Thread function for client. It is called when new client's thread is creating.
-void* ClientFun(void* fd) {
-    ClientKit* p_clientKit = (ClientKit*)fd;
+void *ClientFun(void* fd) {
+    ClientKit *p_clientKit = (ClientKit *) fd;
     char receiveAr[STR_LEN] = { 0 };
     char transmitAr[STR_LEN] = { 0 };
     char username[STR_LEN] = { 0 };
@@ -185,9 +184,9 @@ void* ClientFun(void* fd) {
             RemClient(p_clientKit);
             if (inf == SOCKET_ERROR) {
                 ServerPrint(1, "\r\terror #%d (login%s-step)\n", i + 1, tmpAr[i]);
-                return (void*)1;
+                return (void *) 1;
             }
-            return (void*)0;
+            return (void *) 0;
         }
     }
     strcpy(p_clientKit->username, username);
@@ -225,10 +224,27 @@ void* ClientFun(void* fd) {
         RemClient(p_clientKit);
         if (inf == SOCKET_ERROR) {
             ServerPrint(1, "\r\terror #3 (login reply-step)\n");
-            return (void*)1;
+            return (void *) 1;
         }
-        return (void*)0;
+        return (void *) 0;
     }
+
+    *transmitAr = 18;
+    server_mutex_lock();
+    FILE *chatHistory = fopen(CHAT_HISTORY_PATH, "r");
+    if (chatHistory) {
+        fseek(chatHistory, 0, SEEK_END);
+        if (ftell(chatHistory) > 0) {
+            fseek(chatHistory, 0, SEEK_SET);
+            while (fgets(transmitAr, STR_LEN, chatHistory) != NULL) {
+                inf = send(p_clientKit->sock, transmitAr, sizeof(transmitAr), 0);
+            }
+            *transmitAr = 17;
+        }
+        fclose(chatHistory);
+    }
+    send(p_clientKit->sock, transmitAr, sizeof(transmitAr), 0);
+    server_mutex_unlock();
 
     for (;;) {
         inf = recv(p_clientKit->sock, receiveAr, sizeof(receiveAr), 0);
@@ -236,14 +252,14 @@ void* ClientFun(void* fd) {
             RemClient(p_clientKit);
             if (inf == SOCKET_ERROR) {
                 ServerPrint(1, "\r\terror #1\n");
-                return (void*)1;
+                return (void *) 1;
             }
-            return (void*)0;
+            return (void *) 0;
         }
 
         server_mutex_lock();
         printf("\r %s: %s\n", p_clientKit->username, receiveAr);
-        FILE* messageHistory = fopen(MESSAGE_HISTORY_PATH, "a");
+        FILE *messageHistory = fopen(CHAT_HISTORY_PATH, "a");
         fprintf(messageHistory, "%s: %s\n", p_clientKit->username, receiveAr);
         fclose(messageHistory);
         server_mutex_unlock();
@@ -252,19 +268,19 @@ void* ClientFun(void* fd) {
         inf = send(p_clientKit->sock, transmitAr, sizeof(transmitAr), 0);
         if (inf == SOCKET_ERROR) {
             ServerPrint(1, "\r\terror #2\n");
-            return (void*)2;
+            return (void *) 2;
         }
     }
 
     RemClient(p_clientKit);
-    return (void*)0;
+    return (void *) 0;
 }
 
 // Main server function
 int CreateServer() {
     UserList registered = { 0 };
 
-    FILE* rf = fopen(REGISTERED_USERS_PATH, "r");
+    FILE *rf = fopen(REGISTERED_USERS_PATH, "r");
     if (rf) {
         int id = 0;
         char username[STR_LEN] = { 0 };
@@ -289,7 +305,7 @@ int CreateServer() {
     serverAddr.sin_port = htons(5510);
     serverAddr.sin_addr.s_addr = INADDR_ANY;
 
-    Bind(serverSock, (struct sockaddr*)&serverAddr, sizeof(serverAddr));
+    Bind(serverSock, (struct sockaddr *) &serverAddr, sizeof(serverAddr));
 
     Listen(serverSock, 5);
 
@@ -298,12 +314,12 @@ int CreateServer() {
 
     ClientKit termKit = { 0, 0, { 0 }, &registered };
     pthread_t termThread;
-    pthread_create(&termThread, NULL, TermFun, (void*)&termKit);
+    pthread_create(&termThread, NULL, TermFun, (void *) &termKit);
     pthread_detach(termThread);
 
     socklen_t serverAddrLen = sizeof(serverAddr);
     for (;;) {
-        clientSock = accept(serverSock, (struct sockaddr*)&clientAddr, &serverAddrLen);
+        clientSock = accept(serverSock, (struct sockaddr *) &clientAddr, &serverAddrLen);
         if (clientSock == INVALID_SOCKET) {
             ServerPrint(1, "\raccept failed\n");
             continue;
@@ -313,14 +329,14 @@ int CreateServer() {
         printf("\rclient (socket=%d) has connected, wants to login\n", clientSock);
         server_mutex_unlock();
 
-        ClientKit* p_clientKit = (ClientKit*)malloc(sizeof(ClientKit));
+        ClientKit *p_clientKit = (ClientKit *) malloc(sizeof(ClientKit));
         p_clientKit->sock = clientSock;
         p_clientKit->id = 0;
         memset(p_clientKit->username, '\0', sizeof(p_clientKit->username));
         p_clientKit->registered = &registered;
 
         pthread_t newThread;
-        pthread_create(&newThread, NULL, ClientFun, (void*)p_clientKit);
+        pthread_create(&newThread, NULL, ClientFun, (void *) p_clientKit);
         pthread_detach(newThread);
     }
 }

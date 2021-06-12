@@ -1,7 +1,7 @@
 #include "client.h"
 
 // Check for exit command
-int Send(SOCKET sockfd, const char* buf, size_t len, int flags) {
+int Send(SOCKET sockfd, const char *buf, size_t len, int flags) {
     if (strlen(buf) <= MAX_CMD_LEN && (!strcmp(buf, "exit") || !strcmp(buf, "exit\n"))) {
         send(sockfd, "exit", sizeof("exit"), 0);
         printf("\r > exit\n");
@@ -10,6 +10,7 @@ int Send(SOCKET sockfd, const char* buf, size_t len, int flags) {
     }
     return send(sockfd, buf, len, flags);
 }
+
 // Function for clienting or smth
 void CreateClient() {
     char receiveAr[STR_LEN] = { 0 };
@@ -24,10 +25,10 @@ void CreateClient() {
     serverAddr.sin_port = htons(5510);
     serverAddr.sin_addr.s_addr = inet_addr("127.0.0.1");
 
-    Connect(clientSock, (struct sockaddr*)&serverAddr, sizeof(serverAddr));
+    Connect(clientSock, (struct sockaddr *) &serverAddr, sizeof(serverAddr));
     printf("\rTo close client enter single word \"exit\"\n");
 
-    char* p_tmpAr[2] = { username, password };
+    char *p_tmpAr[2] = { username, password };
     char tmpAr[2][10] = { "username\0", "password\0" };
     for (int i = 0; i < 2; ++i) {
         printf("\rEnter %s: ", tmpAr[i]);
@@ -48,8 +49,11 @@ void CreateClient() {
         return;
     }
 
+    char clientWelcomeMessage[STR_LEN];
     if (!strcmp(receiveAr, "success 1")) {
-        printf("\rWelcome back, %s!\n", username);
+        strcpy(clientWelcomeMessage, "\rWelcome back, ");
+        strcat(clientWelcomeMessage, username);
+        strcat(clientWelcomeMessage, "!\n");
     }
     else if (!strcmp(receiveAr, "wrong password")) {
         printf("\rWrong password for username %s.\n", username);
@@ -62,12 +66,28 @@ void CreateClient() {
         return;
     }
     else if (!strcmp(receiveAr, "success 2")) {
-        printf("\rWelcome aboard, %s!\n", username);
+        strcpy(clientWelcomeMessage, "\rWelcome aboard, ");
+        strcat(clientWelcomeMessage, username);
+        strcat(clientWelcomeMessage, "!\n");
     }
     else {
         printf("\r\terror #1002");
         closesocket(clientSock);
         return;
+    }
+
+    inf = recv(clientSock, receiveAr, sizeof(receiveAr), 0);
+    if (*receiveAr == 18) {
+        printf("%s", clientWelcomeMessage);
+        printf("\rChat history is empty. Wanna be first?\n");
+    }
+    else {
+        printf("\r\n\tMessage history:\n\n");
+        do {
+            printf("\r%s", receiveAr);
+            inf = recv(clientSock, receiveAr, sizeof(receiveAr), 0);
+        } while (*receiveAr != 17);
+        printf("\r%s", clientWelcomeMessage);
     }
 
     for (;;) {
