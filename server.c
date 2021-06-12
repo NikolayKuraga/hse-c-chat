@@ -19,6 +19,7 @@ void server_mutex_unlock() {
 void PrintUserList(UserList* p_userList) {
     server_mutex_lock();
     printf("\r\nnumber of users: %4.1d\n", p_userList->num);
+
     for (int i = 1; p_userList->user[i].id && i < MAX_USERS; ++i) {
         printf("user ID:       %4.1d\n", p_userList->user[i].id);
         printf("     username: %s\n", p_userList->user[i].username);
@@ -32,9 +33,12 @@ void ServerPrint(int args, ...) {
     va_list ap;
     va_start(ap, args);
     server_mutex_lock();
+    FILE* wf = fopen(SERVER_LOGS, "a");
     for (int i = 0; i < args; ++i) {
         printf("%s", va_arg(ap, char*));
+        fprintf(wf, "%s", va_arg(ap, char*));
     }
+    fclose(wf);
     server_mutex_unlock();
     va_end(ap);
 }
@@ -69,11 +73,21 @@ void ServerPrint(int args, ...) {
                     server_mutex_lock();
                     printf("\r---\n > %s %s %s\n", cmd1, cmd2, cmd3);
                     printf("number of users: %4.1d\n", p_termKit->registered->num);
+                    FILE* logs = fopen(SERVER_LOGS, "a");
+                    fprintf(logs, "%s: %s\n", p_clientKit->username, receiveAr);
+                    fclose(logs);
+                    server_mutex_unlock();
                     for (int i = 1; p_termKit->registered->user[i].id && i < MAX_USERS; ++i) {
+                        server_mutex_lock();
                         printf("user ID:       %4.1d\n", p_termKit->registered->user[i].id);
                         printf("     username: %s\n", p_termKit->registered->user[i].username);
                         printf("     password: %s\n", p_termKit->registered->user[i].password);
+                        FILE* logs = fopen(SERVER_LOGS, "a");
+                        fprintf(logs, "%s: %s\n", p_clientKit->username, receiveAr);
+                        fclose(logs);
+                        server_mutex_unlock();
                     }
+
                     printf("---\n");
                     server_mutex_unlock();
                 }
@@ -155,7 +169,12 @@ int AddUserToList(char username[STR_LEN], char password[STR_LEN], UserList* user
 // Literaly remove client using its ClientKit. Print message, close socket and free() ClientKit
 void RemClient(ClientKit* p_clientKit) {
     char buf[STR_LEN * 2] = { 0 };
+    server_mutex_lock
     sprintf(buf, "\rclient (socket=%d", p_clientKit->sock);
+    FILE* logs = fopen(SERVER_LOGS, "a");
+    fprintf(logs, "%s: %s\n", p_clientKit->username, receiveAr);
+    fclose(logs);
+    server_mutex_unlock();
     if (*(p_clientKit->username) != '\0' && strcmp(p_clientKit->username, "exit")) {
         strcat(buf, ", username=");
         strcat(buf, p_clientKit->username);
@@ -241,9 +260,9 @@ void* ClientFun(void* fd) {
 
         server_mutex_lock();
         printf("\r %s: %s\n", p_clientKit->username, receiveAr);
-        FILE* messageHistory = fopen(MESSAGE_HISTORY_PATH, "a");
-        fprintf(messageHistory, "%s: %s\n", p_clientKit->username, receiveAr);
-        fclose(messageHistory);
+        FILE* logs = fopen(SERVER_LOGS, "a");
+        fprintf(logs, "%s: %s\n", p_clientKit->username, receiveAr);
+        fclose(logs);
         server_mutex_unlock();
 
         strcpy(transmitAr, "OK");
