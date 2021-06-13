@@ -181,11 +181,19 @@ void* ClientFun(void* fd) {
     char tmpAr[2][10] = { "username\0", "password\0" };
     for (int i = 0; i < 2; ++i) {
         inf = recv(p_clientKit->sock, p_tmpAr[i], sizeof(char) * STR_LEN, 0);
-        if (inf == SOCKET_ERROR || !strcmp(p_tmpAr[i], "exit")) {
+        if (inf == SOCKET_ERROR || !strcmp(p_tmpAr[i], "exit") || !strlen(p_tmpAr[i])) {
             RemClient(p_clientKit);
             if (inf == SOCKET_ERROR) {
-                ServerPrint(1, "\r\terror #%d (login%s-step)\n", i + 1, tmpAr[i]);
+                server_mutex_lock();
+                printf("\r\terror #%d (login %s-step)\n", i + 1, tmpAr[i]);
+                server_mutex_unlock();
                 return (void*)1;
+            }
+            if (!strlen(p_tmpAr[i])) {
+                server_mutex_lock();
+                printf("\r\terror #%d (login %s-step): empty %s\n", i + 1, tmpAr[i], tmpAr[i]);
+                server_mutex_unlock();
+                return (void*)2;
             }
             return (void*)0;
         }

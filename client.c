@@ -40,6 +40,11 @@ void CreateClient() {
             closesocket(clientSock);
             return;
         }
+        if (!strlen(p_tmpAr[i])) {
+            printf("\r\terror #%d (login %s-step): empty %s\n", i + 1, tmpAr[i], tmpAr[i]);
+            closesocket(clientSock);
+            return;
+        }
     }
 
     inf = recv(clientSock, receiveAr, sizeof(receiveAr), 0);
