@@ -2,7 +2,7 @@
 
 // Check for exit command
 int Send(SOCKET sockfd, const char* buf, size_t len, int flags) {
-    if (strlen(buf) <= MAX_CMD_LEN && (!strcmp(buf, "exit") || !strcmp(buf, "exit\n"))) {
+    if (!strcmp(buf, "exit") || !strcmp(buf, "exit\n")) {
         send(sockfd, "exit", sizeof("exit"), 0);
         printf("\r > exit\n");
         closesocket(sockfd);
@@ -25,7 +25,7 @@ void CreateClient() {
     serverAddr.sin_addr.s_addr = inet_addr("127.0.0.1");
 
     Connect(clientSock, (struct sockaddr*)&serverAddr, sizeof(serverAddr));
-    printf("\rTo close client enter single word \"exit\"\n");
+    printf("\rTo close the client, enter \"exit\"\n");
 
     char* p_tmpAr[2] = { username, password };
     char tmpAr[2][10] = { "username\0", "password\0" };
@@ -33,8 +33,9 @@ void CreateClient() {
         printf("\rEnter %s: ", tmpAr[i]);
         fgets(p_tmpAr[i], sizeof(char) * STR_LEN, stdin);
         p_tmpAr[i][strlen(p_tmpAr[i]) - 1] = '\0';
+        trim(p_tmpAr[i]);
         inf = Send(clientSock, p_tmpAr[i], sizeof(char) * STR_LEN, 0);
-        if (inf == -1) {
+        if (inf == SOCKET_ERROR) {
             printf("\r\tlogin error #%d (%s-step)\n", i + 1, tmpAr[i]);
             closesocket(clientSock);
             return;
@@ -74,7 +75,8 @@ void CreateClient() {
         printf("\r %s > draft: ", username);
         fgets(transmitAr, ARR_LEN(transmitAr, *transmitAr), stdin);
         transmitAr[strlen(transmitAr) - 1] = '\0';
-        inf = Send(clientSock, transmitAr, sizeof(receiveAr), 0);
+        trim(transmitAr);
+        inf = Send(clientSock, transmitAr, sizeof(transmitAr), 0);
         if (inf == SOCKET_ERROR) {
             printf("\r\terror #1\n");
             closesocket(clientSock);
@@ -86,7 +88,10 @@ void CreateClient() {
             closesocket(clientSock);
             return;
         }
-        if (strcmp(receiveAr, "OK")) {
+        if (!strcmp(receiveAr, "empty")) {
+            printf("\r\tempty message! try again!\n");
+        }
+        else if (strcmp(receiveAr, "OK")) {
             printf("\r\terror #3: wrong reply from server\n");
         }
     }

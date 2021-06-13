@@ -15,7 +15,6 @@
 #pragma comment(lib, "ws2_32.lib")
 
 #define STR_LEN 1024
-#define MAX_CMD_LEN 6
 #define ARR_LEN(array, element) (sizeof(array) / sizeof(element)) // calculate length of array
 
 int Socket(int domain, int type, int protocol);
