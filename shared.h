@@ -2,7 +2,8 @@
 #define SHARED_H
 
 #define _CRT_SECURE_NO_WARNINGS
-// C standart libraries
+#define _WINSOCK_DEPRECATED_NO_WARNINGS
+// C standard libraries
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -14,7 +15,6 @@
 #pragma comment(lib, "ws2_32.lib")
 
 #define STR_LEN 1024
-#define MAX_CMD_LEN 6
 #define ARR_LEN(array, element) (sizeof(array) / sizeof(element)) // calculate length of array
 
 int Socket(int domain, int type, int protocol);
@@ -27,4 +27,5 @@ int Accept(int sockfd, struct sockaddr* addr, int* addrlen);
 
 void Connect(int sockfd, const struct sockaddr* addr, int addrlen);
 
+void trim(char* str);
 #endif//SHARED_H

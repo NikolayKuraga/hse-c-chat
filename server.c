@@ -39,9 +39,9 @@ void ServerPrint(int args, ...) {
     va_end(ap);
 }
 
-    // Terminal function. It expects some commands which server administrator can enter
-    // to server's terminal. Reacts to these commands. So, it is server's command line.
-    void* TermFun(void* fd) {
+// Terminal function. It expects some commands which server administrator can enter
+// to server's terminal. Reacts to these commands. So, it is server's command line.
+void* TermFun(void* fd) {
     ClientKit* p_termKit = (ClientKit*)fd;
     char cmd1[STR_LEN] = { 0 };
     char cmd2[STR_LEN] = { 0 };
@@ -90,6 +90,7 @@ void ServerPrint(int args, ...) {
             if (!strcmp(cmd2, "registered")) {
                 scanf("%s", cmd3);
                 if (!strcmp(cmd3, "users")) {
+                    printf("\r---\n > %s %s %s\n", cmd1, cmd2, cmd3);
                     for (int i = 1; p_termKit->registered->user[i].id && i < MAX_USERS; ++i) {
                         p_termKit->registered->user[i].id = 0;
                         memset(p_termKit->registered->user[i].username, '\0',
@@ -106,6 +107,7 @@ void ServerPrint(int args, ...) {
                 }
             }
             else if (!strcmp(cmd2, "messages")) {
+                printf("\r---\n > %s %s\n", cmd1, cmd2);
                 fclose(fopen(MESSAGE_HISTORY_PATH, "w"));
                 ServerPrint(1, "message history was deleted\n---\n");
             }
@@ -160,7 +162,7 @@ void RemClient(ClientKit* p_clientKit) {
         strcat(buf, ", username=");
         strcat(buf, p_clientKit->username);
     }
-    ServerPrint(2, buf, ") has disconnected\n");
+    ServerPrint(2, buf, ") disconnected\n");
     closesocket(p_clientKit->sock);
     free(p_clientKit);
     return;
@@ -179,11 +181,19 @@ void* ClientFun(void* fd) {
     char tmpAr[2][10] = { "username\0", "password\0" };
     for (int i = 0; i < 2; ++i) {
         inf = recv(p_clientKit->sock, p_tmpAr[i], sizeof(char) * STR_LEN, 0);
-        if (inf == SOCKET_ERROR || (strlen(p_tmpAr[i]) <= MAX_CMD_LEN && !strcmp(p_tmpAr[i], "exit"))) {
+        if (inf == SOCKET_ERROR || !strcmp(p_tmpAr[i], "exit") || !strlen(p_tmpAr[i])) {
             RemClient(p_clientKit);
             if (inf == SOCKET_ERROR) {
-                ServerPrint(1, "\r\terror #%d (login%s-step)\n", i + 1, tmpAr[i]);
+                server_mutex_lock();
+                printf("\r\terror #%d (login %s-step)\n", i + 1, tmpAr[i]);
+                server_mutex_unlock();
                 return (void*)1;
+            }
+            if (!strlen(p_tmpAr[i])) {
+                server_mutex_lock();
+                printf("\r\terror #%d (login %s-step): empty %s\n", i + 1, tmpAr[i], tmpAr[i]);
+                server_mutex_unlock();
+                return (void*)2;
             }
             return (void*)0;
         }
@@ -194,11 +204,11 @@ void* ClientFun(void* fd) {
     out = 1;
     switch (inf) {
     case 0:
-        ServerPrint(3, "\ruser ", p_clientKit->username, " has logged in\n");
+        ServerPrint(3, "\ruser ", p_clientKit->username, " logged in\n");
         inf = send(p_clientKit->sock, "success 1", sizeof("success 1"), 0);
         break;
     case -1:
-        ServerPrint(3, "\ruser ", p_clientKit->username, " has tried to log in - wrong password\n");
+        ServerPrint(3, "\ruser ", p_clientKit->username, " tried to log in - wrong password\n");
         inf = send(p_clientKit->sock, "wrong password", sizeof("wrong password"), 0);
         out = 0;
         break;
@@ -209,14 +219,14 @@ void* ClientFun(void* fd) {
             out = 0;
         }
         else {
-            ServerPrint(3, "\ruser ", p_clientKit->username, " has registered and logged in\n");
+            ServerPrint(3, "\ruser ", p_clientKit->username, " registered and logged in\n");
             inf = send(p_clientKit->sock, "success 2", sizeof("success 2"), 0);
         }
         break;
     default:
         RemClient(p_clientKit);
         ServerPrint(1, "\r\terror #1001");
-        exit(0);
+        exit(EXIT_FAILURE);
     }
 
     if (!out || inf == SOCKET_ERROR) {
@@ -238,15 +248,18 @@ void* ClientFun(void* fd) {
             }
             return (void*)0;
         }
-
-        server_mutex_lock();
-        printf("\r %s: %s\n", p_clientKit->username, receiveAr);
-        FILE* messageHistory = fopen(MESSAGE_HISTORY_PATH, "a");
-        fprintf(messageHistory, "%s: %s\n", p_clientKit->username, receiveAr);
-        fclose(messageHistory);
-        server_mutex_unlock();
-
-        strcpy(transmitAr, "OK");
+        if (strlen(receiveAr)) {
+            server_mutex_lock();
+            printf("\r %s: %s\n", p_clientKit->username, receiveAr);
+            FILE* messageHistory = fopen(MESSAGE_HISTORY_PATH, "a");
+            fprintf(messageHistory, "%s: %s\n", p_clientKit->username, receiveAr);
+            fclose(messageHistory);
+            server_mutex_unlock();
+            strcpy(transmitAr, "OK");
+        }
+        else {
+            strcpy(transmitAr, "empty");
+        }
         inf = send(p_clientKit->sock, transmitAr, sizeof(transmitAr), 0);
         if (inf == SOCKET_ERROR) {
             ServerPrint(1, "\r\terror #2\n");
@@ -315,7 +328,7 @@ int CreateServer() {
         }
 
         server_mutex_lock();
-        printf("\rclient (socket=%d) has connected, wants to login\n", clientSock);
+        printf("\rclient (socket=%d) connected, wants to login\n", clientSock);
         server_mutex_unlock();
 
         ClientKit* p_clientKit = (ClientKit*)malloc(sizeof(ClientKit));
