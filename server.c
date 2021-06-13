@@ -287,6 +287,13 @@ int CreateServer() {
     serverAddr.sin_port = htons(5510);
     serverAddr.sin_addr.s_addr = INADDR_ANY;
 
+    char enable = 1;
+    int inf = setsockopt(serverSock, SOL_SOCKET, SO_REUSEADDR, &enable, sizeof(int));
+    if (inf == -1) {
+        printf("set sockect failed\n");
+        exit(0);
+    }
+
     Bind(serverSock, (struct sockaddr*)&serverAddr, sizeof(serverAddr));
 
     Listen(serverSock, 5);
