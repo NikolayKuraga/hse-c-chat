@@ -1,5 +1,7 @@
 #include "client.h"
 
+pthread_mutex_t mutex;
+
 // Check for exit command
 int Send(SOCKET sockfd, const char *buf, size_t len, int flags) {
     if (strlen(buf) <= MAX_CMD_LEN && (!strcmp(buf, "exit") || !strcmp(buf, "exit\n"))) {
@@ -9,6 +11,10 @@ int Send(SOCKET sockfd, const char *buf, size_t len, int flags) {
         exit(EXIT_SUCCESS);
     }
     return send(sockfd, buf, len, flags);
+}
+
+void *ChatReceiverFun() {
+    return (void *) 0;
 }
 
 // Function for clienting or smth
@@ -70,6 +76,11 @@ void CreateClient() {
         strcat(clientWelcomeMessage, username);
         strcat(clientWelcomeMessage, "!\n");
     }
+    else if (!strcmp(receiveAr, "already logged in")) {
+        printf("\rUser %s already logged in using another client launcher\n", username);
+        closesocket(clientSock);
+        return;
+    }
     else {
         printf("\r\terror #1002");
         closesocket(clientSock);
@@ -84,12 +95,16 @@ void CreateClient() {
     else {
         printf("\r\n\tMessage history:\n\n");
         do {
-            printf("\r%s", receiveAr);
+            printf("\r %s", receiveAr);
             inf = recv(clientSock, receiveAr, sizeof(receiveAr), 0);
         } while (*receiveAr != 17);
         printf("\r%s", clientWelcomeMessage);
     }
-
+/*
+    pthread_t chatReceiverThread;
+    pthread_create(&chatReceiverThread, NULL, ChatReceiverFun, (void *), NULL);
+    pthread_detach(chatReceiverThread);
+*/
     for (;;) {
         printf("\r %s > draft: ", username);
         fgets(transmitAr, ARR_LEN(transmitAr, *transmitAr), stdin);

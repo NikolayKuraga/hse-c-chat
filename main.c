@@ -6,9 +6,8 @@ int main(int argc, char **argv)
     WSADATA wsd;
     if (WSAStartup(MAKEWORD(1, 1), &wsd))
     {
-        printf("Can't connect to socket lib\n");
-        perror("socket lib error");
-        exit(EXIT_FAILURE);
+        printf("socket lib error");
+        exit(EXIT_SUCCESS);
     }
     if (argc > 2) {
         printf("too many arguments\n\n");

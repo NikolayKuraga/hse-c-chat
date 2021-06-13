@@ -3,6 +3,7 @@
 
 #define _CRT_SECURE_NO_WARNINGS
 #define _WINSOCK_DEPRECATED_NO_WARNINGS
+
 // C standart libraries
 #include <stdio.h>
 #include <stdlib.h>
@@ -13,6 +14,10 @@
 #include <windows.h>
 #include <winsock.h>
 #pragma comment(lib, "ws2_32.lib")
+
+// POSIX Threads (for multithreading)
+#define HAVE_STRUCT_TIMESPEC
+#include <pthread.h>
 
 #define STR_LEN 1024
 #define MAX_CMD_LEN 6
