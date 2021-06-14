@@ -84,7 +84,7 @@ void *TermFun(void *fd) {
                             }
                         }
                     }
-                    printf("totally: %4.1d users\n", --j);
+                    printf("total: %4.1d users\n", --j);
                     printf("---\n");
                     server_mutex_unlock();
                 }

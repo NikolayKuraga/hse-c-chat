@@ -26,7 +26,7 @@ typedef struct {
     } user[MAX_USERS];
 } UserList;
 
-// Client socket starter kit -- a pack of important things. Its pointer usually is gived to new threads
+// Client socket starter kit -- a pack of important things. Its pointer usually is given to new threads
 typedef struct {
     int sock;
     int id;

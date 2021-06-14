@@ -1,12 +1,16 @@
 #include "client.h"
 
 // Check for exit command, then terminate or do send() and return its out
-int Send(SOCKET sockfd, const char *buf, size_t len, int flags) {
+int Send(SOCKET sockfd, const char *buf, size_t len, int flags, int tr) {
     if (!strcmp(buf, "exit")) {
         send(sockfd, "exit", sizeof("exit"), 0);
         printf("\r > exit\n");
         closesocket(sockfd);
         exit(EXIT_SUCCESS);
+    }
+    if (*buf == '\0' && tr == 1) {
+        printf("\r\tEnter not empty message!\n");
+        return 0;
     }
     return send(sockfd, buf, len, flags);
 }
@@ -16,7 +20,7 @@ void *ChatReceiverFun(void *fd) {
     char receiveAr[STR_LEN] = { 0 };
 
     recv(ChatReceiverKit->sock, receiveAr, sizeof(receiveAr), 0); // without this line...
-    for (int i; i > 0; i = recv(ChatReceiverKit->sock, receiveAr, sizeof(receiveAr), 0)) {
+    for (int i = 1; i > 0; i = recv(ChatReceiverKit->sock, receiveAr, sizeof(receiveAr), 0)) {
         printf("\r %s            \n", receiveAr); // ...this loop will run once at start...
         printf("\r %s > draft: ", ChatReceiverKit->username);// ... and it is not correct
     }
@@ -47,7 +51,7 @@ void CreateClient() {
         fgets(p_tmpAr[i], sizeof(char) * STR_LEN, stdin);
         p_tmpAr[i][strlen(p_tmpAr[i]) - 1] = '\0';
         trim(p_tmpAr[i]);
-        inf = Send(clientSock, p_tmpAr[i], sizeof(char) * STR_LEN, 0);
+        inf = Send(clientSock, p_tmpAr[i], sizeof(char) * STR_LEN, 0, 0);
         if (inf == SOCKET_ERROR) {
             printf("\r\tlogin error #%d (%s-step)\n", i + 1, tmpAr[i]);
             closesocket(clientSock);
@@ -113,8 +117,6 @@ void CreateClient() {
         printf("\r%s", clientWelcomeMessage);
     }
 
-//    pthread_mutex_init(&mutex, NULL);
-
     ThreadKit chatReceiverKit = { 0 };
     chatReceiverKit.sock = clientSock;
     strcpy(chatReceiverKit.username, username);
@@ -127,7 +129,7 @@ void CreateClient() {
         fgets(transmitAr, ARR_LEN(transmitAr, *transmitAr), stdin);
         transmitAr[strlen(transmitAr) - 1] = '\0';
         trim(transmitAr);
-        inf = Send(clientSock, transmitAr, sizeof(transmitAr), 0);
+        inf = Send(clientSock, transmitAr, sizeof(transmitAr), 0, 1);
         if (inf == SOCKET_ERROR) {
             printf("\r\terror #1\n");
             closesocket(clientSock);
