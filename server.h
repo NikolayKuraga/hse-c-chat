@@ -22,10 +22,11 @@ typedef struct {
         char username[STR_LEN];
         char password[STR_LEN];
         int stat;
+        int curSock; // client's socket for current session
     } user[MAX_USERS];
 } UserList;
 
-// Client socket starter kit -- a pack of important things. Its pointer is gived to newThread
+// Client socket starter kit -- a pack of important things. Its pointer usually is gived to new threads
 typedef struct {
     int sock;
     int id;

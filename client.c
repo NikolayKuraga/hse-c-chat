@@ -1,10 +1,7 @@
 #include "client.h"
 
-pthread_mutex_t mutex;
-
-// Check for exit command
 int Send(SOCKET sockfd, const char *buf, size_t len, int flags) {
-    if (strlen(buf) <= MAX_CMD_LEN && (!strcmp(buf, "exit") || !strcmp(buf, "exit\n"))) {
+    if (!strcmp(buf, "exit")) {
         send(sockfd, "exit", sizeof("exit"), 0);
         printf("\r > exit\n");
         closesocket(sockfd);
@@ -13,7 +10,19 @@ int Send(SOCKET sockfd, const char *buf, size_t len, int flags) {
     return send(sockfd, buf, len, flags);
 }
 
-void *ChatReceiverFun() {
+void *ChatReceiverFun(void *fd) {
+    ThreadKit *ChatReceiverKit = (ThreadKit *) fd;
+    char receiveAr[STR_LEN] = { 0 };
+
+    recv(ChatReceiverKit->sock, receiveAr, sizeof(receiveAr), 0); // without this line...
+    for (int i = -1; i > 0 ;) {
+        i = recv(ChatReceiverKit->sock, receiveAr, sizeof(receiveAr), 0);
+        printf(" <<< %d >>> ", i);
+        if (i > 0) {
+            printf("\r %s            \n", receiveAr); // ...this loop will run once at start...
+            printf("\r %s > draft: ", ChatReceiverKit->username);// ... and it is not correct
+        }
+    }
     return (void *) 0;
 }
 
@@ -100,11 +109,16 @@ void CreateClient() {
         } while (*receiveAr != 17);
         printf("\r%s", clientWelcomeMessage);
     }
-/*
+
+//    pthread_mutex_init(&mutex, NULL);
+
+    ThreadKit chatReceiverKit = { 0 };
+    chatReceiverKit.sock = clientSock;
+    strcpy(chatReceiverKit.username, username);
     pthread_t chatReceiverThread;
-    pthread_create(&chatReceiverThread, NULL, ChatReceiverFun, (void *), NULL);
+    pthread_create(&chatReceiverThread, NULL, ChatReceiverFun, (void *) &chatReceiverKit);
     pthread_detach(chatReceiverThread);
-*/
+
     for (;;) {
         printf("\r %s > draft: ", username);
         fgets(transmitAr, ARR_LEN(transmitAr, *transmitAr), stdin);
@@ -115,17 +129,5 @@ void CreateClient() {
             closesocket(clientSock);
             return;
         }
-        inf = recv(clientSock, receiveAr, sizeof(receiveAr), 0);
-        if (inf == SOCKET_ERROR) {
-            printf("\r\terror #2\n");
-            closesocket(clientSock);
-            return;
-        }
-        if (strcmp(receiveAr, "OK")) {
-            printf("\r\terror #3: wrong reply from server\n");
-        }
     }
-
-    closesocket(clientSock);
-    return;
 }

@@ -1,6 +1,7 @@
 #ifndef SHARED_H
 #define SHARED_H
 
+// Windows macros to NOT show some warnings
 #define _CRT_SECURE_NO_WARNINGS
 #define _WINSOCK_DEPRECATED_NO_WARNINGS
 
@@ -9,7 +10,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-// net, web and other communicative stuff
+// Windows net, web and other communicative stuff
 #include <ws2tcpip.h> // for structure socklen_t
 #include <windows.h>
 #include <winsock.h>
@@ -21,7 +22,7 @@
 
 #define STR_LEN 1024
 #define MAX_CMD_LEN 6
-#define ARR_LEN(array, element) (sizeof(array) / sizeof(element)) // calculate length of array
+#define ARR_LEN(array, element) ((sizeof(array)) / (sizeof(element))) // calculate length of array
 
 int Socket(int domain, int type, int protocol);
 
