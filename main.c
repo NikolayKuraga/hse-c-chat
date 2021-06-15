@@ -1,21 +1,36 @@
-#include "server.h"
+﻿#include "server.h"
 #include "client.h"
 
-int main(int argc, char* argv[])
+int main(int argc, char **argv)
 {
-    if (argc > 0) {
+    WSADATA wsd;
+    if (WSAStartup(MAKEWORD(1, 1), &wsd))
+    {
+        printf("socket lib error");
+        exit(EXIT_SUCCESS);
+    }
+    if (argc > 2) {
+        printf("too many arguments\n\n");
+    }
+    else if (argc == 2) {
         if (!strcmp(argv[1], "server")) {
-            printf("SERVER\n");
+            FILE* logs = fopen(SERVER_LOGS, "w");
+            printf("\n\tStart server\n\n");
+            fprintf(logs, "\n\tStart server\n\n");
+            fclose(logs);
+            CreateServer();
         }
         else if (!strcmp(argv[1], "client")) {
-            printf("CLIENT\n");
+            printf("\n\tStart client\n\n");
+            CreateClient();
         }
         else {
-            printf("WRONG ARGUMENT\n");
+            printf("wrong argument\n\n");
         }
     }
     else {
-        printf("CLIENT\n");
+        printf("\n\tStart client by default\n\n");
+        CreateClient();
     }
     return 0;
 }
