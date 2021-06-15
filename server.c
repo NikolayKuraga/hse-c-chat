@@ -17,12 +17,19 @@ void server_mutex_unlock() {
 // Print user list you give
 void PrintUserList(UserList *p_userList) {
     server_mutex_lock();
+    FILE* logs = fopen(SERVER_LOGS, "a");
     printf("\r\nnumber of users: %4.1d\n", p_userList->num);
+    fprintf(logs, "\nnumber of users: %4.1d\n", p_userList->num);
     for (int i = 1; p_userList->user[i].id && i < MAX_USERS; ++i) {
         printf("user ID:       %4.1d\n", p_userList->user[i].id);
         printf("     username: %s\n", p_userList->user[i].username);
         printf("     password: %s\n", p_userList->user[i].password);
-    } printf("\n");
+        fprintf(logs, "user ID:       %4.1d\n", p_userList->user[i].id);
+        fprintf(logs, "     username: %s\n", p_userList->user[i].username);
+        fprintf(logs, "     password: %s\n", p_userList->user[i].password);
+    } 
+    printf("\n");
+    fprintf(logs, "\n");
     server_mutex_unlock();
 }
 
@@ -30,12 +37,18 @@ void PrintUserList(UserList *p_userList) {
 void ServerPrint(int args, ...) {
     va_list ap;
     va_start(ap, args);
+    va_list ap2;
+    va_start(ap2, args);
     server_mutex_lock();
+    printf("\r");
+    FILE* logs = fopen(SERVER_LOGS, "a");
     for (int i = 0; i < args; ++i) {
         printf("%s", va_arg(ap, char *));
+        fprintf(logs, "%s", va_arg(ap2, char*));
     }
     server_mutex_unlock();
     va_end(ap);
+    va_end(ap2);
 }
 
 // Terminal function. It expects some commands which server administrator can enter
@@ -49,11 +62,14 @@ void *TermFun(void *fd) {
         scanf("%s", cmd1);
         if (!strcmp(cmd1, "stop")) {
             server_mutex_lock();
+            FILE* logs = fopen(SERVER_LOGS, "a");
             printf("\r---\n > %s\n---\n", cmd1);
+            fprintf(logs, "---\n > %s\n---\n", cmd1);
             FILE *wf = fopen(REGISTERED_USERS_PATH, "w+");
             for (int i = 1; p_termKit->registered->user[i].id && i < MAX_USERS; ++i) {
                 fprintf(wf, "%4.1d : %s\n       %s\n\n", p_termKit->registered->user[i].id, p_termKit->registered->user[i].username, p_termKit->registered->user[i].password);
             }
+            fclose(logs);
             fclose(wf);
             pthread_mutex_destroy(&mutex);
             pthread_mutex_destroy(&mutex_file);
@@ -65,13 +81,18 @@ void *TermFun(void *fd) {
                 scanf("%s", cmd3);
                 if (!strcmp(cmd3, "users")) {
                     server_mutex_lock();
+                    FILE* logs = fopen(SERVER_LOGS, "a");
                     printf("\r---\n > %s %s %s\n", cmd1, cmd2, cmd3);
+                    fprintf(logs, "---\n > %s %s %s\n", cmd1, cmd2, cmd3);
                     int j = 1;
                     if      (!strcmp(cmd2, "registered")) {
                         for (; p_termKit->registered->user[j].id && j < MAX_USERS; ++j) {
                             printf("user ID:       %4.1d\n", p_termKit->registered->user[j].id);
                             printf("     username: %s\n", p_termKit->registered->user[j].username);
                             printf("     password: %s\n", p_termKit->registered->user[j].password);
+                            fprintf(logs, "user ID:       %4.1d\n", p_termKit->registered->user[j].id);
+                            fprintf(logs, "     username: %s\n", p_termKit->registered->user[j].username);
+                            fprintf(logs, "     password: %s\n", p_termKit->registered->user[j].password);
                         }
                     }
                     else if (!strcmp(cmd2, "active")) {
@@ -81,19 +102,25 @@ void *TermFun(void *fd) {
                                 printf("user ID:       %4.1d\n", p_termKit->registered->user[i].id);
                                 printf("     username: %s\n", p_termKit->registered->user[i].username);
                                 printf("     password: %s\n", p_termKit->registered->user[i].password);
+                                fprintf(logs, "user ID:       %4.1d\n", p_termKit->registered->user[i].id);
+                                fprintf(logs, "     username: %s\n", p_termKit->registered->user[i].username);
+                                fprintf(logs, "     password: %s\n", p_termKit->registered->user[i].password);
                             }
                         }
                     }
                     printf("total: %4.1d users\n", --j);
                     printf("---\n");
+                    fprintf(logs, "total: %4.1d users\n", --j);
+                    fprintf(logs, "---\n");
+                    fclose(logs);
                     server_mutex_unlock();
                 }
                 else {
-                    ServerPrint(7, "\runknown command: \"", cmd1, " ", cmd2, " ", cmd3, "\" \n");
+                    ServerPrint(7, "unknown command: \"", cmd1, " ", cmd2, " ", cmd3, "\" \n");
                 }
             }
             else {
-                ServerPrint(5, "\runknown command: \"", cmd1, " ", cmd2, "\" \n");
+                ServerPrint(5, "unknown command: \"", cmd1, " ", cmd2, "\" \n");
             }
         }
         else if (!strcmp(cmd1, "clean")) {
@@ -102,31 +129,40 @@ void *TermFun(void *fd) {
                 scanf("%s", cmd3);
                 if (!strcmp(cmd3, "users")) {
                     server_mutex_lock();
+                    FILE* logs = fopen(SERVER_LOGS, "a");
                     printf("\r---\n > %s %s %s\n", cmd1, cmd2, cmd3);
+                    fprintf(logs, "---\n > %s %s %s\n", cmd1, cmd2, cmd3);
                     memset(p_termKit->registered, '\0', sizeof(UserList));
                     p_termKit->registered->num = 0;
                     fclose(fopen(REGISTERED_USERS_PATH, "w"));
                     printf("all registered users were deleted\n---\n"
                            "\n\tRestart server for correct working\n\n");
+                    fprintf(logs, "all registered users were deleted\n---\n"
+                        "\n\tRestart server for correct working\n\n");
+                    fclose(logs);
                     server_mutex_unlock();
                 }
                 else {
-                    ServerPrint(7, "\runknown command: \"", cmd1, " ", cmd2, " ", cmd3, "\" \n");
+                    ServerPrint(7, "unknown command: \"", cmd1, " ", cmd2, " ", cmd3, "\" \n");
                 }
             }
             else if (!strcmp(cmd2, "messages")) {
                 server_mutex_lock();
+                FILE* logs = fopen(SERVER_LOGS, "a");
                 printf("\r---\n > %s %s\n", cmd1, cmd2);
+                fprintf(logs, "---\n > %s %s\n", cmd1, cmd2);
+                fprintf(logs, "message history was deleted\n---\n");
                 fclose(fopen(CHAT_HISTORY_PATH, "w"));
                 printf("message history was deleted\n---\n");
+                fclose(logs);
                 server_mutex_unlock();
             }
             else {
-                ServerPrint(5, "\runknown command: \"", cmd1, " ", cmd2, "\" \n");
+                ServerPrint(5, "unknown command: \"", cmd1, " ", cmd2, "\" \n");
             }
         }
         else {
-            ServerPrint(3, "\runknown command: \"", cmd1, "\" \n");
+            ServerPrint(3, "unknown command: \"", cmd1, "\" \n");
         }
     }
 }
@@ -165,16 +201,19 @@ int AddUserToList(char username[STR_LEN], char password[STR_LEN], UserList *user
 // Literaly remove client using its ClientKit and print message about it.
 void RemClient(ClientKit *p_clientKit) {
     char buf[STR_LEN] = { 0 };
-    sprintf(buf, "\rclient (socket=%d", p_clientKit->sock);
+    sprintf(buf, "client (socket=%d", p_clientKit->sock);
     if (*(p_clientKit->username) != '\0' && strcmp(p_clientKit->username, "exit")) {
         strcat(buf, ", username=");
         strcat(buf, p_clientKit->username);
     }
     server_mutex_lock();
+    FILE* logs = fopen(SERVER_LOGS, "a");
     p_clientKit->registered->user[p_clientKit->id].stat = STAT_OFFLINE;
     closesocket(p_clientKit->sock);
     free(p_clientKit);
-    printf("%s) disconnected\n", buf);
+    printf("\r%s) disconnected\n", buf);
+    fprintf(logs, "%s) disconnected\n", buf);
+    fclose(logs);
     server_mutex_unlock();
     return;
 }
@@ -196,13 +235,18 @@ void *ClientFun(void *fd) {
         if (inf == SOCKET_ERROR || !strcmp(p_tmpAr[i], "exit") || !strlen(p_tmpAr[i])) {
             RemClient(p_clientKit);
             server_mutex_lock();
+            FILE* logs = fopen(SERVER_LOGS, "a");
             if (inf == SOCKET_ERROR) {
                 printf("\r\terror #%d (login %s-step)\n", i + 1, tmpAr[i]);
+                fprintf(logs, "\terror #%d (login %s-step)\n", i + 1, tmpAr[i]);
+                fclose(logs);
                 server_mutex_unlock();
                 return (void *) 1;
             }
             if (!strlen(p_tmpAr[i])) {
                 printf("\r\terror #%d (login %s-step): empty %s\n", i + 1, tmpAr[i], tmpAr[i]);
+                fprintf(logs, "\terror #%d (login %s-step): empty %s\n", i + 1, tmpAr[i], tmpAr[i]);
+                fclose(logs);
                 server_mutex_unlock();
                 return (void *) 2;
             }
@@ -215,15 +259,19 @@ void *ClientFun(void *fd) {
     server_mutex_lock();
     p_clientKit->id = CheckForUser(p_clientKit->username, password, p_clientKit->registered);
     out = 0;
+    FILE* logs = fopen(SERVER_LOGS, "a");
     if      (p_clientKit->id > 0) {
         printf("\ruser %s", p_clientKit->username);
+        fprintf(logs, "user %s", p_clientKit->username);
         if (p_clientKit->registered->user[p_clientKit->id].stat == STAT_ONLINE) {
             printf(" tried to log in - already logged in\n");
+            fprintf(logs, " tried to log in - already logged in\n");
             inf = send(p_clientKit->sock, "already logged in", sizeof("already logged in"), 0);
             out += 2;
         }
         else {
             printf(" logged in\n");
+            fprintf(logs, " logged in\n");
             p_clientKit->registered->user[p_clientKit->id].stat = STAT_ONLINE;
             inf = send(p_clientKit->sock, "success 1", sizeof("success 1"), 0);
         }
@@ -232,21 +280,25 @@ void *ClientFun(void *fd) {
         p_clientKit->id = AddUserToList(p_clientKit->username, password, p_clientKit->registered);
         if (p_clientKit->id == 0) {
             printf("\rlist of registered users is full, registration is closed\n");
+            fprintf(logs, "list of registered users is full, registration is closed\n");
             inf = send(p_clientKit->sock, "not available", sizeof("not available"), 0);
             ++out;
         }
         else {
             printf("\ruser %s has registered and logged in\n", p_clientKit->username);
+            fprintf(logs, "user %s has registered and logged in\n", p_clientKit->username);
             p_clientKit->registered->user[p_clientKit->id].stat = STAT_ONLINE;
             inf = send(p_clientKit->sock, "success 2", sizeof("success 2"), 0);
         }
     }
     else {
         printf("\ruser %s has tried to log in - wrong password\n", p_clientKit->username);
+        fprintf(logs, "user %s has tried to log in - wrong password\n", p_clientKit->username);
         inf = send(p_clientKit->sock, "wrong password", sizeof("wrong password"), 0);
         ++out;
     }
     p_clientKit->registered->user[p_clientKit->id].curSock = p_clientKit->sock;
+    fclose(logs);
     server_mutex_unlock();
 
     int *p_curClientStat = &(p_clientKit->registered->user[p_clientKit->id].stat);
@@ -256,7 +308,7 @@ void *ClientFun(void *fd) {
             *p_curClientStat = STAT_ONLINE;
         }
         if (inf == SOCKET_ERROR) {
-            ServerPrint(1, "\r\terror #3 (login reply-step)\n");
+            ServerPrint(1, "\terror #3 (login reply-step)\n");
             return (void *) 1;
         }
         return (void *) 0;
@@ -265,6 +317,7 @@ void *ClientFun(void *fd) {
     *transmitAr = 18;
     server_mutex_lock();
     FILE *chatHistory = fopen(CHAT_HISTORY_PATH, "r");
+   
     if (chatHistory) {
         fseek(chatHistory, 0, SEEK_END);
         if (ftell(chatHistory) > 0) {
@@ -294,7 +347,10 @@ void *ClientFun(void *fd) {
         strncpy(transmitAr, buf, sizeof(transmitAr));
         transmitAr[ARR_LEN(transmitAr, *transmitAr) - 1] = '\0';
         server_mutex_lock();
+        FILE* logs = fopen(SERVER_LOGS, "a");
         printf("\r %s\n", transmitAr);
+        fprintf(logs, " %s\n", transmitAr);
+        fclose(logs);
         FILE *messageHistory = fopen(CHAT_HISTORY_PATH, "a");
         fprintf(messageHistory, "%s\n", transmitAr);
         fclose(messageHistory);
@@ -309,7 +365,7 @@ void *ClientFun(void *fd) {
 // Main server function
 int CreateServer() {
     UserList registered = { 0 };
-
+    FILE* logs = fopen(SERVER_LOGS, "a");
     FILE *rf = fopen(REGISTERED_USERS_PATH, "r");
     if (rf) {
         int id = 0;
@@ -340,13 +396,14 @@ int CreateServer() {
     int inf = setsockopt(serverSock, SOL_SOCKET, SO_REUSEADDR, &enable, sizeof(int));
     if (inf == -1) {
         printf("set sockect failed\n");
+        fprintf(logs, "set sockect failed\n");
         exit(0);
     }
 
     Bind(serverSock, (struct sockaddr *) &serverAddr, sizeof(serverAddr));
 
     Listen(serverSock, 5);
-
+    fclose(logs);
     pthread_mutex_init(&mutex, NULL);
     pthread_mutex_init(&mutex_file, NULL);
 
@@ -359,12 +416,15 @@ int CreateServer() {
     for (;;) {
         clientSock = accept(serverSock, (struct sockaddr *) &clientAddr, &serverAddrLen);
         if (clientSock == INVALID_SOCKET) {
-            ServerPrint(1, "\raccept failed\n");
+            ServerPrint(1, "accept failed\n");
             continue;
         }
 
         server_mutex_lock();
+        FILE* logs = fopen(SERVER_LOGS, "a");
         printf("\rclient (socket=%d) connected, wants to login\n", clientSock);
+        fprintf(logs, "client (socket=%d) connected, wants to login\n", clientSock);
+        fclose(logs);
         server_mutex_unlock();
 
         ClientKit *p_clientKit = (ClientKit *) malloc(sizeof(ClientKit));

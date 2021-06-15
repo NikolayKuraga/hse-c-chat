@@ -14,7 +14,10 @@ int main(int argc, char **argv)
     }
     else if (argc == 2) {
         if (!strcmp(argv[1], "server")) {
+            FILE* logs = fopen(SERVER_LOGS, "w");
             printf("\n\tStart server\n\n");
+            fprintf(logs, "\n\tStart server\n\n");
+            fclose(logs);
             CreateServer();
         }
         else if (!strcmp(argv[1], "client")) {
